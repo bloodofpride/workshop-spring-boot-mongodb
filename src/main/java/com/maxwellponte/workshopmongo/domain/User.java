@@ -1,5 +1,6 @@
 package com.maxwellponte.workshopmongo.domain;
 
+import com.maxwellponte.workshopmongo.dtos.UserDTO;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
