@@ -1,7 +1,9 @@
 package com.maxwellponte.workshopmongo.services;
 
+import com.maxwellponte.workshopmongo.domain.Post;
 import com.maxwellponte.workshopmongo.domain.User;
 import com.maxwellponte.workshopmongo.dtos.UserDTO;
+import com.maxwellponte.workshopmongo.repositories.PostRepository;
 import com.maxwellponte.workshopmongo.repositories.UserRepository;
 import com.maxwellponte.workshopmongo.services.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,9 @@ import java.util.stream.Collectors;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PostRepository postRepository;
 
     public List<UserDTO> findAll(){
         List<User> users = userRepository.findAll();
@@ -49,8 +54,14 @@ public class UserService {
     }
 
     private User fromDto(UserDTO userDTO){
-        return new User(userDTO.getId(), userDTO.getName(), userDTO.getEmail());
+        User user = new User(userDTO.getId(), userDTO.getName(), userDTO.getEmail());
+        user.setPosts(userDTO.getPosts());
+        return user;
     }
 
 
+    public List<Post> findPosts(String id) {
+        User user = fromDto(findById(id));
+        return user.getPosts();
+    }
 }
