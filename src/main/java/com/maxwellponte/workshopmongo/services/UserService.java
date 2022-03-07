@@ -2,24 +2,28 @@ package com.maxwellponte.workshopmongo.services;
 
 import com.maxwellponte.workshopmongo.domain.Post;
 import com.maxwellponte.workshopmongo.domain.User;
+import com.maxwellponte.workshopmongo.dtos.AuthorDTO;
 import com.maxwellponte.workshopmongo.dtos.UserDTO;
 import com.maxwellponte.workshopmongo.repositories.PostRepository;
 import com.maxwellponte.workshopmongo.repositories.UserRepository;
 import com.maxwellponte.workshopmongo.services.exception.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
 
-    @Autowired
-    private PostRepository postRepository;
+
+    public UserService(UserRepository userRepository, PostRepository postRepository) {
+        this.userRepository = userRepository;
+        this.postRepository = postRepository;
+    }
 
     public List<UserDTO> findAll(){
         List<User> users = userRepository.findAll();
@@ -27,33 +31,36 @@ public class UserService {
     }
 
     public UserDTO findById(String id){
-        Optional<User> user = userRepository.findById(id);
-        return new UserDTO(user.orElseThrow(() -> new ObjectNotFoundException("Objeto não encontrado com o id: "+id)));
+        User user = findUser(id);
+        return new UserDTO(user);
     }
 
     public User save(UserDTO userDTO) {
-        User user = userRepository.insert(fromDto(userDTO));
-        return user;
+        return userRepository.insert(fromDto(userDTO));
     }
 
     public void delete(String id){
-        User user = fromDto(findById(id));
+        User user = findUser(id);
         userRepository.delete(user);
     }
 
     public UserDTO update(UserDTO userDTO) {
-        User newUser = fromDto(findById(userDTO.getId()));
+        User newUser = findUser(userDTO.getId());
         updateData(newUser, userDTO);
         userRepository.save(newUser);
         return new UserDTO(newUser);
     }
 
     public List<Post> findPosts(String id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()){
-            throw new ObjectNotFoundException("Objeto não encontrado com o id: "+id);
-        }
-        return user.get().getPosts();
+       User user = findUser(id);
+       for (Post p : user.getPosts()){
+           if(!Objects.equals(user.getName(), p.getAuthor().getName())) {
+               p.setAuthor(new AuthorDTO(user));
+               postRepository.save(p);
+           }
+       }
+       userRepository.save(user);
+       return user.getPosts();
     }
 
     private void updateData(User newUser, UserDTO userDTO) {
@@ -65,6 +72,9 @@ public class UserService {
         return new User(userDTO.getId(), userDTO.getName(), userDTO.getEmail());
     }
 
-
+    private User findUser(String id){
+        Optional<User> user = userRepository.findById(id);
+        return user.orElseThrow(() -> new ObjectNotFoundException("Objeto não encontrado com o id: "+id));
+    }
 
 }

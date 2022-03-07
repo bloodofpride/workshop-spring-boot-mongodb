@@ -4,21 +4,21 @@ import com.maxwellponte.workshopmongo.domain.Post;
 import com.maxwellponte.workshopmongo.domain.User;
 import com.maxwellponte.workshopmongo.dtos.UserDTO;
 import com.maxwellponte.workshopmongo.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @RestController
 @RequestMapping(value = "/users")
 public class UserResource {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserResource(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping()
     public ResponseEntity<List<UserDTO>> findAll(){
