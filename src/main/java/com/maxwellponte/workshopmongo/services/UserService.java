@@ -48,20 +48,23 @@ public class UserService {
         return new UserDTO(newUser);
     }
 
+    public List<Post> findPosts(String id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()){
+            throw new ObjectNotFoundException("Objeto não encontrado com o id: "+id);
+        }
+        return user.get().getPosts();
+    }
+
     private void updateData(User newUser, UserDTO userDTO) {
         newUser.setName(userDTO.getName());
         newUser.setEmail(userDTO.getEmail());
     }
 
     private User fromDto(UserDTO userDTO){
-        User user = new User(userDTO.getId(), userDTO.getName(), userDTO.getEmail());
-        user.setPosts(userDTO.getPosts());
-        return user;
+        return new User(userDTO.getId(), userDTO.getName(), userDTO.getEmail());
     }
 
 
-    public List<Post> findPosts(String id) {
-        User user = fromDto(findById(id));
-        return user.getPosts();
-    }
+
 }
